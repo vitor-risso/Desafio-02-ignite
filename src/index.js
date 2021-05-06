@@ -11,18 +11,72 @@ const users = [];
 
 function checksExistsUserAccount(request, response, next) {
   // Complete aqui
+  const { username } = request.headers
+
+  const checkIfUserExists = users.find(user => user.username === username)
+
+  if (!checkIfUserExists) {
+    return response.status(404)
+  }
+
+  request.user = checkIfUserExists
+
+  return next()
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
   // Complete aqui
+
+  const { user } = request
+
+  if (user.todos.length < 10 || user.pro) {
+    return next()
+  }
+
+  return response.status(403)
 }
 
 function checksTodoExists(request, response, next) {
   // Complete aqui
+  const { id } = request.params
+  const { username } = request.headers
+
+  const user = users.find(user => user.username === username)
+
+  if (!user) {
+    return response.status(404)
+  }
+
+  const hasTodo = user.todos.find(todo => todo.id === id)
+  const isUuid = id.match('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
+
+  if (!isUuid) {
+    return response.status(400)
+  }
+
+  if (hasTodo == null) {
+    return response.status(404)
+  }
+
+
+  request.user = user
+  request.todo = hasTodo
+  return next()
 }
 
 function findUserById(request, response, next) {
   // Complete aqui
+  const { id } = request.params
+
+  const user = users.find(user => user.id === id)
+
+  if (!user) {
+    return response.status(404)
+  }
+
+  request.user = user
+
+  return next()
 }
 
 app.post('/users', (request, response) => {
